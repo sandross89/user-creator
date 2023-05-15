@@ -1,0 +1,97 @@
+﻿<File version="3.1">
+  <Code><![CDATA[#Define a Param block to use custom parameters in the project
+#Param ($CustomParameter)
+
+function Main {
+<#
+    .SYNOPSIS
+        The Main function starts the project application.
+    
+    .PARAMETER Commandline
+        $Commandline contains the complete argument string passed to the script packager executable.
+    
+    .NOTES
+        Use this function to initialize your script and to call GUI forms.
+		
+    .NOTES
+        To get the console output in the Packager (Forms Engine) use: 
+		$ConsoleOutput (Type: System.Collections.ArrayList)
+#>
+	Param ([String]$Commandline)
+		
+	#--------------------------------------------------------------------------
+	
+	$Global:Licenses2Add = New-Object 'System.Collections.Generic.List[System.Object]'
+	
+	###REG KEYS
+	#Check if RegKey is present, if not then create one
+	$RegKey = Get-Item 'HKCU:\Software\TheLazyAdministrator\MasterUserCreator' -ErrorAction SilentlyContinue
+	if (! $RegKey)
+	{
+		#Create the root key
+		New-Item 'HKCU:\Software\TheLazyAdministrator\MasterUserCreator' -Force
+		New-Item 'HKCU:\Software\UserCreator\TitleCase\AD' -Force
+		New-Item 'HKCU:\Software\UserCreator\TitleCase\O365' -Force
+		New-Item 'HKCU:\Software\UserCreator\UpperCase\AD' -Force
+		New-Item 'HKCU:\Software\UserCreator\UpperCase\O365' -Force
+		New-Item 'HKCU:\Software\UserCreator\LowerCase\AD' -Force
+		New-Item 'HKCU:\Software\UserCreator\LowerCase\O365' -Force
+	}
+	
+	$RegKeyReset = Get-Item 'HKCU:\Software\UserCreator\Reset' -ErrorAction SilentlyContinue
+	if (! $RegKeyReset)
+	{
+		New-Item 'HKCU:\Software\UserCreator\Reset' -Force
+	}
+	
+	$PasswordSettings = (Get-ItemProperty 'HKCU:\Software\UserCreator\' | Get-ItemProperty -Name PasswordGen -ErrorAction SilentlyContinue).PasswordGen
+	If ($null -eq $PasswordSettings)
+	{
+		Get-Item 'HKCU:\Software\UserCreator\' -Force | Set-ItemProperty -Name PasswordGen -Value 0 -Force | Out-Null
+		
+	}
+	
+	$UserFormatDisplayName = (Get-ItemProperty 'HKCU:\Software\UserCreator\' | Get-ItemProperty -Name UserFormatDisplayName -ErrorAction SilentlyContinue).UserFormatDisplayName
+	If ($null -eq $UserFormatDisplayName)
+	{
+		Get-Item 'HKCU:\Software\UserCreator\' -Force | Set-ItemProperty -Name UserFormatDisplayName -Value "%FirstName% %Initial% %LastName%" -Force | Out-Null
+		
+	}
+	
+	$O365FormatDisplayName = (Get-ItemProperty 'HKCU:\Software\UserCreator\' | Get-ItemProperty -Name UserFormatO365DisplayName -ErrorAction SilentlyContinue).UserFormatO365DisplayName
+	If ($null -eq $UserFormatDisplayName)
+	{
+		Get-Item 'HKCU:\Software\UserCreator\' -Force | Set-ItemProperty -Name UserFormatO365DisplayName -Value "%FirstName% %LastName%" -Force | Out-Null
+		
+	}
+	
+	
+	$O365EmailFormatting = (Get-ItemProperty 'HKCU:\Software\UserCreator\' | Get-ItemProperty -Name UserFormatO365Email -ErrorAction SilentlyContinue).UserFormatO365Email
+	If (($O365EmailFormatting -eq $config) -or ($config -eq ""))
+	{
+		$config = "%FirstLetterFirstName%%LastName%%UserPrincipalNameDomain%"
+		Get-Item 'HKCU:\Software\UserCreator\' -Force | Set-ItemProperty -Name UserFormatO365Email -Value $config -Force | Out-Null
+	}
+	
+	#Thank you to user that has helped suggest items for v2
+	$Hill = (Get-ItemProperty 'HKCU:\Software\UserCreator\' | Get-ItemProperty -Name AHill -ErrorAction SilentlyContinue).AHill
+	If ($Hill -eq 1)
+	{
+		Add-Type -AssemblyName System.Windows.Forms
+		[System.Windows.Forms.MessageBox]::Show("Thank you Aaron Hill for all your ideas in improving this application, V2 wouldn't be as feature filled without all your ideas.", 'Thank You', 'OK')
+		Get-Item 'HKCU:\Software\UserCreator\' -Force | Set-ItemProperty -Name AHill -Value 0 -Force | Out-Null
+	}
+	
+	#--------------------------------------------------------------------------
+	
+	if((Show-MainForm_psf) -eq 'OK')
+	{
+		
+	}
+	
+	$script:ExitCode = 0 #Set the exit code for the Packager
+}
+
+
+]]></Code>
+</File>
